@@ -1,9 +1,26 @@
 import cv2 as cv
-import time
 import numpy as np
+from datetime import datetime, timedelta
+import os
+
+def is_valid(now, time_end, frame, save_path, curr_time):
+    if now >= time_end:
+        # Replace colons with dashes for the filename
+        filename = f"{curr_time.replace(':', '-')}.png"
+        cv.imwrite(os.path.join(save_path, filename), frame)
+        return False
+    return True
 
 print('\nCamera ON!!')
-cam = cv.VideoCapture(1)
+cam = cv.VideoCapture(1)  # Ensure the correct camera index
+
+time_start = datetime.now()
+delta = timedelta(seconds=6)
+time_end = time_start + delta 
+
+# ||==============[ directory made ]==============||
+save_directory = f"D:\\Entries\\{datetime.today().date()}"  # Use double backslashes
+os.makedirs(save_directory, exist_ok=True)
 
 while True:
     ret, frame = cam.read()
@@ -23,9 +40,13 @@ while True:
     frame = cv.flip(frame, 1)
     
     # ||==================[ time and date ]==================||
-    t = time.time()
-    curr_date = time.strftime('%d-%m-%y', time.localtime(t)) 
-    curr_time = time.strftime('%H:%M:%S', time.localtime(t))  
+    now = datetime.now()
+    curr_date = now.strftime('%d-%m-%y') 
+    curr_time = now.strftime('%H-%M-%S')  # Replace colons with dashes for time formatting
+    
+    # || ====[ is valid function ]==== ||
+    if not is_valid(now, time_end, frame, save_directory, curr_time):
+        break  
     
     masked_vid = cv.bitwise_and(frame, frame, mask=mask)
 
@@ -33,7 +54,6 @@ while True:
                  (center[0] - 275, center[1] - 155), 
                  (center[0] + 275, center[1] + 155), 
                  (255, 255, 255), thickness=1)  
-
 
     (text_width, text_height), _ = cv.getTextSize(curr_date, cv.FONT_HERSHEY_TRIPLEX, 0.75, 1)
     text_x = center[0] - (text_width // 2)
@@ -57,7 +77,8 @@ while True:
 
     cv.imshow('||====| Testing |====||', masked_vid)
 
-    if cv.waitKey(1) == ord('q'):
+    # Wait for a key press for a short duration to allow the window to update
+    if cv.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to exit
         break
 
 print('Camera OFF!!\n')
