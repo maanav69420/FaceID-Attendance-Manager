@@ -38,7 +38,7 @@ def create_model(num_classes):
 
 def train_model():
     img_height, img_width = 200, 200
-    data_dir = "face/dataset"
+    data_dir = "dataset"
 
     # Load dataset
     images, labels, class_names = load_data(data_dir, img_height, img_width)
